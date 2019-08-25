@@ -56,15 +56,24 @@
 #endif
 
 #include "edit_distance.h"
+#include "line_printer.h"
 
 using namespace std;
 
+static LinePrinter gLinePrinter;
+
 void Fatal(const char* msg, ...) {
   va_list ap;
+  if (gLinePrinter.supports_color()) {
+    fprintf(stderr, "\x1b[31m");
+  }
   fprintf(stderr, "ninja: fatal: ");
   va_start(ap, msg);
   vfprintf(stderr, msg, ap);
   va_end(ap);
+  if (gLinePrinter.supports_color()) {
+    fprintf(stderr, "\x1b[39m");
+  }
   fprintf(stderr, "\n");
 #ifdef _WIN32
   // On Windows, some tools may inject extra threads.
@@ -78,8 +87,14 @@ void Fatal(const char* msg, ...) {
 }
 
 void Warning(const char* msg, va_list ap) {
+  if (gLinePrinter.supports_color()) {
+    fprintf(stderr, "\x1b[33m");
+  }
   fprintf(stderr, "ninja: warning: ");
   vfprintf(stderr, msg, ap);
+  if (gLinePrinter.supports_color()) {
+    fprintf(stderr, "\x1b[39m");
+  }
   fprintf(stderr, "\n");
 }
 
@@ -91,12 +106,21 @@ void Warning(const char* msg, ...) {
 }
 
 void Error(const char* msg, va_list ap) {
+  if (gLinePrinter.supports_color()) {
+    fprintf(stderr, "\x1b[31m");
+  }
   fprintf(stderr, "ninja: error: ");
   vfprintf(stderr, msg, ap);
+  if (gLinePrinter.supports_color()) {
+    fprintf(stderr, "\x1b[39m");
+  }
   fprintf(stderr, "\n");
 }
 
 void Error(const char* msg, ...) {
+  if (gLinePrinter.supports_color()) {
+    fprintf(stderr, "\x1b[31m");
+  }
   va_list ap;
   va_start(ap, msg);
   Error(msg, ap);

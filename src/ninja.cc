@@ -1361,7 +1361,7 @@ int NinjaMain::RunBuild(int argc, char** argv, Status* status) {
   }
 
   if (!builder.Build(&err)) {
-    status->Info("build stopped: %s.", err.c_str());
+    status->Error("build stopped: %s.", err.c_str());
     if (err.find("interrupted by user") != string::npos) {
       return 2;
     }
