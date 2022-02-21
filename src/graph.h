@@ -214,6 +214,9 @@ struct Edge {
     run_time_ms_ = run_time_ms;
   }
 
+  // Append all edge explicit inputs to |*out|. Possibly with shell escaping.
+  void CollectInputs(bool shell_escape, std::vector<std::string>* out) const;
+
   const Rule* rule_;
   Pool* pool_;
   std::vector<Node*> inputs_;
