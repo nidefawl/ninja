@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 include(CheckSymbolExists)
 include(CheckIPOSupported)
 
-project(ninja)
+project(ninja CXX)
 
 # --- optional link-time optimization
 check_ipo_supported(RESULT lto_supported OUTPUT error)
@@ -123,13 +123,13 @@ if(WIN32)
 		src/includes_normalize-win32.cc
 		src/msvc_helper-win32.cc
 		src/msvc_helper_main-win32.cc
-		src/getopt.c
+		src/getopt.cc
 		src/minidump-win32.cc
 	)
 else()
 	target_sources(libninja PRIVATE src/subprocess-posix.cc)
 	if(CMAKE_SYSTEM_NAME STREQUAL "OS400" OR CMAKE_SYSTEM_NAME STREQUAL "AIX")
-		target_sources(libninja PRIVATE src/getopt.c)
+		target_sources(libninja PRIVATE src/getopt.cc)
 	endif()
 
 	# Needed for perfstat_cpu_total

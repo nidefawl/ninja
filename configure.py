@@ -281,8 +281,6 @@ def built(filename):
     return os.path.join('$builddir', filename)
 def doc(filename):
     return os.path.join('$root', 'doc', filename)
-def cc(name, **kwargs):
-    return n.build(built(name + objext), 'cxx', src(name + '.c'), **kwargs)
 def cxx(name, **kwargs):
     return n.build(built(name + objext), 'cxx', src(name + '.cc'), **kwargs)
 def binary(name):
@@ -532,11 +530,11 @@ if platform.is_windows():
         objs += cxx(name, variables=cxxvariables)
     if platform.is_msvc():
         objs += cxx('minidump-win32', variables=cxxvariables)
-    objs += cc('getopt')
+    objs += cxx('getopt')
 else:
     objs += cxx('subprocess-posix')
 if platform.is_aix():
-    objs += cc('getopt')
+    objs += cxx('getopt')
 if platform.is_msvc():
     ninja_lib = n.build(built('ninja.lib'), 'ar', objs)
 else:
