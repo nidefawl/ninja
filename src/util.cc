@@ -65,7 +65,7 @@ static LinePrinter gLinePrinter;
 void Fatal(const char* msg, ...) {
   va_list ap;
   if (gLinePrinter.supports_color()) {
-    fprintf(stderr, "\x1b[31m");
+    fprintf(stderr, "\x1b[91m");
   }
   fprintf(stderr, "ninja: fatal: ");
   va_start(ap, msg);
@@ -87,15 +87,18 @@ void Fatal(const char* msg, ...) {
 }
 
 void Warning(const char* msg, va_list ap) {
+  fflush(stderr);
   if (gLinePrinter.supports_color()) {
-    fprintf(stderr, "\x1b[33m");
+    fprintf(stderr, "\n\x1b[33mninja: warning: ");
+  } else {
+    fprintf(stderr, "\nninja: warning: ");
   }
-  fprintf(stderr, "ninja: warning: ");
   vfprintf(stderr, msg, ap);
   if (gLinePrinter.supports_color()) {
-    fprintf(stderr, "\x1b[39m");
+    fprintf(stderr, "\x1b[39m\n");
+  } else {
+    fprintf(stderr, "\n");
   }
-  fprintf(stderr, "\n");
 }
 
 void Warning(const char* msg, ...) {
@@ -106,21 +109,21 @@ void Warning(const char* msg, ...) {
 }
 
 void Error(const char* msg, va_list ap) {
+  fflush(stderr);
   if (gLinePrinter.supports_color()) {
-    fprintf(stderr, "\x1b[31m");
+    fprintf(stderr, "\n\x1b[91mninja: ");
+  } else {
+    fprintf(stderr, "\nninja: error: ");
   }
-  fprintf(stderr, "ninja: error: ");
   vfprintf(stderr, msg, ap);
   if (gLinePrinter.supports_color()) {
-    fprintf(stderr, "\x1b[39m");
+    fprintf(stderr, "\x1b[39m\n");
+  } else {
+    fprintf(stderr, "\n");
   }
-  fprintf(stderr, "\n");
 }
 
 void Error(const char* msg, ...) {
-  if (gLinePrinter.supports_color()) {
-    fprintf(stderr, "\x1b[31m");
-  }
   va_list ap;
   va_start(ap, msg);
   Error(msg, ap);
@@ -128,9 +131,17 @@ void Error(const char* msg, ...) {
 }
 
 void Info(const char* msg, va_list ap) {
-  fprintf(stdout, "ninja: ");
+  if (gLinePrinter.supports_color()) {
+    fprintf(stdout, "\x1b[36mninja: ");
+  } else {
+    fprintf(stdout, "ninja: ");
+  }
   vfprintf(stdout, msg, ap);
-  fprintf(stdout, "\n");
+  if (gLinePrinter.supports_color()) {
+    fprintf(stdout, "\x1b[39m\n");
+  } else {
+    fprintf(stdout, "\n");
+  }
 }
 
 void Info(const char* msg, ...) {
