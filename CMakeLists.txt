@@ -5,6 +5,11 @@ include(CheckIPOSupported)
 
 project(ninja CXX)
 
+if (MINGW AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	set (CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 -march=x86-64-v3 -mtune=x86-64 -ffunction-sections -fdata-sections -fomit-frame-pointer -fno-stack-protector -fno-rtti -fno-exceptions")
+	set (CMAKE_EXE_LINKER_FLAGS_RELEASE "-Wl,--gc-sections -static-libgcc -static-libstdc++ -Wl,--strip-all")
+endif()
+
 # --- optional link-time optimization
 check_ipo_supported(RESULT lto_supported OUTPUT error)
 
