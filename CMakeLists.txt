@@ -143,7 +143,7 @@ if(CMAKE_CXX_STANDARD_DEFAULT EQUAL 98)
 endif()
 
 #Fixes GetActiveProcessorCount on MinGW
-if(MINGW)
+if (MINGW AND CMAKE_COMPILER_IS_GNUCXX)
 target_compile_definitions(libninja PRIVATE _WIN32_WINNT=0x0601 __USE_MINGW_ANSI_STDIO=1)
 endif()
 
