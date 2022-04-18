@@ -37,12 +37,21 @@ LinePrinter::LinePrinter() : have_blank_line_(true), console_locked_(false) {
 #ifndef _WIN32
   smart_terminal_ = isatty(1) && term && string(term) != "dumb";
 #else
+  CONSOLE_SCREEN_BUFFER_INFO csbi;
+  console_ = GetStdHandle(STD_OUTPUT_HANDLE);
+  smart_terminal_ = GetConsoleScreenBufferInfo(console_, &csbi);
+  if (smart_terminal_) {
+    terminal_width = csbi.dwSize.X;
+  } else {
+    const char* columns = getenv("COLUMNS");
+    if (columns) {
+      terminal_width = atoi(columns);
+    }
+  }
   if (term && string(term) == "dumb") {
     smart_terminal_ = false;
-  } else {
-    console_ = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    smart_terminal_ = GetConsoleScreenBufferInfo(console_, &csbi);
+  } else if (term && string(term).find_first_of("xterm") != string::npos) {
+    smart_terminal_ = true;
   }
 #endif
   supports_color_ = smart_terminal_;
@@ -70,55 +79,22 @@ void LinePrinter::Print(string to_print, LineType type) {
     return;
   }
 
-  if (smart_terminal_) {
-    printf("\r");  // Print over previous line, if any.
-    // On Windows, calling a C library function writing to stdout also handles
-    // pausing the executable when the "Pause" key or Ctrl-S is pressed.
-  }
-
   if (smart_terminal_ && type == ELIDE) {
-#ifdef _WIN32
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(console_, &csbi);
-
-    to_print = ElideMiddle(to_print, static_cast<size_t>(csbi.dwSize.X));
-    if (supports_color_) {  // this means ENABLE_VIRTUAL_TERMINAL_PROCESSING
-                            // succeeded
-      printf("%s\x1B[K", to_print.c_str());  // Clear to end of line.
-      fflush(stdout);
-    } else {
-      // We don't want to have the cursor spamming back and forth, so instead of
-      // printf use WriteConsoleOutput which updates the contents of the buffer,
-      // but doesn't move the cursor position.
-      COORD buf_size = { csbi.dwSize.X, 1 };
-      COORD zero_zero = { 0, 0 };
-      SMALL_RECT target = { csbi.dwCursorPosition.X, csbi.dwCursorPosition.Y,
-                            static_cast<SHORT>(csbi.dwCursorPosition.X +
-                                               csbi.dwSize.X - 1),
-                            csbi.dwCursorPosition.Y };
-      vector<CHAR_INFO> char_data(csbi.dwSize.X);
-      for (size_t i = 0; i < static_cast<size_t>(csbi.dwSize.X); ++i) {
-        char_data[i].Char.AsciiChar = i < to_print.size() ? to_print[i] : ' ';
-        char_data[i].Attributes = csbi.wAttributes;
-      }
-      WriteConsoleOutput(console_, &char_data[0], buf_size, zero_zero, &target);
-    }
-#else
+#ifndef _WIN32
     // Limit output to width of the terminal if provided so we don't cause
     // line-wrapping.
     winsize size;
     if ((ioctl(STDOUT_FILENO, TIOCGWINSZ, &size) == 0) && size.ws_col) {
-      to_print = ElideMiddle(to_print, size.ws_col);
+      terminal_width = size.ws_col;
     }
-    printf("%s", to_print.c_str());
-    printf("\x1B[K");  // Clear to end of line.
-    fflush(stdout);
 #endif
-
+    to_print = ElideMiddle(to_print, static_cast<size_t>(terminal_width));
+    printf("\r%s\x1B[K", to_print.c_str());  // Clear to end of line
     have_blank_line_ = false;
   } else {
     printf("%s\n", to_print.c_str());
   }
+  fflush(stdout);
 }
 
 void LinePrinter::PrintOrBuffer(const char* data, size_t size) {

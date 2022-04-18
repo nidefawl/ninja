@@ -47,6 +47,8 @@ struct LinePrinter {
   /// Whether we can do fancy terminal control codes.
   bool smart_terminal_;
 
+  int terminal_width = 120;
+
   /// Whether we can use ISO 6429 (ANSI) color sequences.
   bool supports_color_;
 
