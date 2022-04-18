@@ -38,7 +38,7 @@ StatusPrinter::StatusPrinter(const BuildConfig& config)
 
   progress_status_format_ = getenv("NINJA_STATUS");
   if (!progress_status_format_)
-    progress_status_format_ = "[%f/%t] ";
+    progress_status_format_ = "[%s/%t %p :: %e] ";
 }
 
 void StatusPrinter::PlanHasTotalEdges(int total) {
